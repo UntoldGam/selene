@@ -1,4 +1,4 @@
-# selene
+# selene (Untoldgam fork)
 
 ## [Read the documentation here!](https://kampfkarren.github.io/selene/)
 
@@ -9,3 +9,4 @@ Priorities:
 - Easy to extend and modify
 - Easy to configure
 - ...but the user should need to configure as little as possible
+
