@@ -7,64 +7,6 @@ on:
     branches:
     - main
 jobs:
-  build_windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build (Default features)
-      run: |
-        cd selene
-        cargo build --locked --release
-    - name: Upload selene
-      uses: actions/upload-artifact@v4
-      with:
-        name: selene-windows
-        path: ./target/release/selene.exe
-  build_windows_light:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build (Lightweight)
-      run: |
-        cd selene
-        cargo build --locked --release --verbose --no-default-features
-    - name: Upload selene-light
-      uses: actions/upload-artifact@v4
-      with:
-        name: selene-light-windows
-        path: ./target/release/selene.exe
-  build_mac:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Install Rust
-      run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - name: Build (Default features)
-      run: |
-        source $HOME/.cargo/env
-        cd selene
-        cargo build --locked --release
-    - name: Upload selene
-      uses: actions/upload-artifact@v4
-      with:
-        name: selene-macos
-        path: ./target/release/selene
-  build_mac_light:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Install Rust
-      run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - name: Build (Lightweight)
-      run: |
-        source $HOME/.cargo/env
-        cd selene
-        cargo build --locked --release --verbose --no-default-features
-    - name: Upload selene-light
-      uses: actions/upload-artifact@v4
-      with:
-        name: selene-light-macos
-        path: ./target/release/selene
   build_linux:
     runs-on: ubuntu-latest
     steps:
@@ -115,9 +57,10 @@ jobs:
       with:
         name: selene-light-linux-aarch64
         path: ./target/aarch64-unknown-linux-gnu/release/selene
+        path: ./target/release/selene
   release:
     runs-on: ubuntu-latest
-    needs: ['build_windows_light', 'build_windows', 'build_mac', 'build_mac_light', 'build_linux', 'build_linux_light']
+    needs: ['build_linux', 'build_linux_light']
     if: contains(github.event.head_commit.message, '[release]')
     steps:
     - uses: actions/checkout@v4
@@ -127,11 +70,7 @@ jobs:
         path: artifacts
     - run: |
         zip -rj selene-light-linux.zip ./artifacts/selene-light-linux/*
-        zip -rj selene-light-macos.zip ./artifacts/selene-light-macos/*
-        zip -rj selene-light-windows.zip ./artifacts/selene-light-windows/*
         zip -rj selene-linux.zip ./artifacts/selene-linux/*
-        zip -rj selene-macos.zip ./artifacts/selene-macos/*
-        zip -rj selene-windows.zip ./artifacts/selene-windows/*
         zip -rj selene-linux-arm64.zip ./artifacts/selene-linux-aarch64/*
         zip -rj selene-light-linux-arm64.zip ./artifacts/selene-light-linux-aarch64/*
 
@@ -174,42 +113,6 @@ jobs:
         asset_path: ./selene-light-linux.zip
         asset_name: selene-light-${{ env.VERSION }}-linux.zip
         asset_content_type: application/zip
-    - name: Upload Windows build
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./selene-windows.zip
-        asset_name: selene-${{ env.VERSION }}-windows.zip
-        asset_content_type: application/zip
-    - name: Upload Windows build (light)
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./selene-light-windows.zip
-        asset_name: selene-light-${{ env.VERSION }}-windows.zip
-        asset_content_type: application/zip
-    - name: Upload Mac build
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./selene-macos.zip
-        asset_name: selene-${{ env.VERSION }}-macos.zip
-        asset_content_type: application/zip
-    - name: Upload Mac build (light)
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./selene-light-macos.zip
-        asset_name: selene-light-${{ env.VERSION }}-macos.zip
-        asset_content_type: application/zip
     - name: Upload Linux ARM64 build
       uses: actions/upload-release-asset@v1
       env:
@@ -246,3 +149,4 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
